@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --paper: #f5f1e6;
+  --paper-raised: #fcfaf4;
+  --ink: #26241e;
+  --ink-soft: #6b675c;
+  --line: #dedacb;
+  --green: #2f6f4e;
+  --green-soft: #e4eee6;
+  --rust: #a6472e;
+  --gold: #b5892b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Inter", sans-serif;
+}
+
+.wrap { max-width: 560px; margin: 0 auto; padding: 28px 20px 80px; }
+
+h1.brand {
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 28px;
+  margin: 0 0 2px;
+}
+
+.tagline { color: var(--ink-soft); font-size: 14px; margin: 0 0 28px; }
+
+.card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+.card h2 { font-family: "Fraunces", serif; font-size: 17px; font-weight: 600; margin: 0 0 14px; }
+
+label { display: block; font-size: 12.5px; color: var(--ink-soft); margin: 12px 0 5px; }
+label:first-of-type { margin-top: 0; }
+
+input[type="text"], input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 15px;
+  font-family: inherit;
+}
+
+input:focus { outline: 2px solid var(--green); outline-offset: -1px; }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip {
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-size: 13.5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.chip.active { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: 500; }
+
+button.primary {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  border: none;
+  border-radius: 7px;
+  background: var(--ink);
+  color: var(--paper-raised);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.balance-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.balance-row:last-child { border-bottom: none; }
+
+.amt { font-family: "IBM Plex Mono", monospace; font-size: 14.5px; font-weight: 500; }
+.amt.owe { color: var(--rust); }
+.amt.get { color: var(--green); }
+
+.settle-btn {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.empty { color: var(--ink-soft); font-size: 14px; padding: 8px 0; }
+
+.expense-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.expense-item:last-child { border-bottom: none; }
+
+.expense-meta { color: var(--ink-soft); font-size: 12.5px; margin-top: 2px; }
+
+.total-pill {
+  display: inline-block;
+  background: var(--gold);
+  color: #fff;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  height: fit-content;
+}
+
+footer { text-align: center; color: var(--ink-soft); font-size: 12px; margin-top: 30px; }
