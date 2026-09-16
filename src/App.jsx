@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 // You can rename these to your own friends' names!
 const FRIENDS = ["You", "Rifah", "Emon", "Iqra"];
 
-function loadState() {
+function loadExpenses() {
   try {
     const raw = localStorage.getItem("split-expenses");
     return raw ? JSON.parse(raw) : [];
@@ -12,8 +12,18 @@ function loadState() {
   }
 }
 
+function loadSettlements() {
+  try {
+    const raw = localStorage.getItem("split-settlements");
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
 export default function App() {
-  const [expenses, setExpenses] = useState(loadState);
+  const [expenses, setExpenses] = useState(loadExpenses);
+  const [settlements, setSettlements] = useState(loadSettlements); // { personName: amountAlreadySettled }
   const [desc, setDesc] = useState("");
   const [amount, setAmount] = useState("");
   const [payer, setPayer] = useState("You");
@@ -24,6 +34,12 @@ export default function App() {
       localStorage.setItem("split-expenses", JSON.stringify(expenses));
     } catch (e) {}
   }, [expenses]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("split-settlements", JSON.stringify(settlements));
+    } catch (e) {}
+  }, [settlements]);
 
   function toggleFriend(name) {
     setSplitWith((s) =>
@@ -42,34 +58,42 @@ export default function App() {
         amount: amt,
         payer,
         splitWith: [...splitWith],
-        settled: false,
       },
     ]);
     setDesc("");
     setAmount("");
   }
 
-  function settleAll() {
-    setExpenses((e) => e.map((x) => ({ ...x, settled: true })));
+  // raw net balance per person from ALL expenses ever logged (before settlements are subtracted)
+  const rawNet = {};
+  FRIENDS.forEach((f) => (rawNet[f] = 0));
+  expenses.forEach((e) => {
+    const share = e.amount / e.splitWith.length;
+    e.splitWith.forEach((person) => {
+      if (person !== e.payer) {
+        rawNet[person] -= share;
+        rawNet[e.payer] += share;
+      }
+    });
+  });
+
+  // current balance = raw net minus whatever has already been settled for that person
+  const currentNet = {};
+  FRIENDS.forEach((f) => (currentNet[f] = rawNet[f] - (settlements[f] || 0)));
+
+  function settlePerson(person) {
+    setSettlements((s) => ({ ...s, [person]: rawNet[person] }));
   }
 
-  // compute net balance per person: positive = they are owed, negative = they owe
-  const net = {};
-  FRIENDS.forEach((f) => (net[f] = 0));
-  expenses
-    .filter((e) => !e.settled)
-    .forEach((e) => {
-      const share = e.amount / e.splitWith.length;
-      e.splitWith.forEach((person) => {
-        if (person !== e.payer) {
-          net[person] -= share;
-          net[e.payer] += share;
-        }
-      });
-    });
+  function settleAll() {
+    const all = {};
+    FRIENDS.forEach((f) => (all[f] = rawNet[f]));
+    setSettlements(all);
+  }
 
   const others = FRIENDS.filter((f) => f !== "You");
   const canAdd = desc.trim() && parseFloat(amount) > 0 && splitWith.length > 0;
+  const anyUnsettled = others.some((f) => Math.abs(currentNet[f]) > 0.01);
 
   return (
     <div className="wrap">
@@ -130,29 +154,36 @@ export default function App() {
       <div className="card">
         <h2>Balances</h2>
         {others.map((f) => {
-          const theirNet = net[f];
+          const bal = currentNet[f];
+          const isSettled = Math.abs(bal) <= 0.01;
           return (
             <div className="balance-row" key={f}>
               <div className="who">
                 <b>{f}</b>
               </div>
-              <div>
-                {theirNet > 0.01 ? (
-                  <span className="amt get">gets ৳{theirNet.toFixed(2)}</span>
-                ) : theirNet < -0.01 ? (
-                  <span className="amt owe">
-                    owes ৳{Math.abs(theirNet).toFixed(2)}
-                  </span>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                {bal > 0.01 ? (
+                  <span className="amt get">gets ৳{bal.toFixed(2)}</span>
+                ) : bal < -0.01 ? (
+                  <span className="amt owe">owes ৳{Math.abs(bal).toFixed(2)}</span>
                 ) : (
                   <span className="amt" style={{ color: "var(--ink-soft)" }}>
                     settled
                   </span>
                 )}
+                {!isSettled && (
+                  <button
+                    className="settle-btn"
+                    onClick={() => settlePerson(f)}
+                  >
+                    Settle
+                  </button>
+                )}
               </div>
             </div>
           );
         })}
-        {expenses.filter((e) => !e.settled).length > 0 && (
+        {anyUnsettled && (
           <button
             className="settle-btn"
             style={{ marginTop: 14, width: "100%" }}
@@ -174,14 +205,7 @@ export default function App() {
           .map((e) => (
             <div className="expense-item" key={e.id}>
               <div>
-                <div>
-                  {e.desc}{" "}
-                  {e.settled && (
-                    <span style={{ color: "var(--green)", fontSize: 11 }}>
-                      · settled
-                    </span>
-                  )}
-                </div>
+                <div>{e.desc}</div>
                 <div className="expense-meta">
                   {e.payer} paid · split {e.splitWith.length} ways
                 </div>
